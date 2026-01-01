@@ -3,8 +3,29 @@
 -- =========================
 
 --authorize
+-- for channel
 select * from channel
 where channel.channel_id = 'blahblah' and channel.auth_token = "ff";
+
+select * from channel
+where channel.auth_token = '53ab8af4ec2d25594b9df3938cf6935b5b3519d65987215e1ec27fc3c7c3d008';
+
+-- for video
+select * from channel
+join video on video.channel_id = channel.channel_id
+where channel.auth_token = 'ff' and video.video_id = 'fff';
+--for comment
+select * from channel
+join comment on comment.channel_id = channel.channel_id
+where channel.auth_token = 'ff' and comment.comment_id = 'fff';
+--for subscription deletion
+select * from channel
+join subscription on subsription.subscriber_id = channel.channel_id
+where channel.auth_token = 'ff' and subsription.subscriber_id = 'fff'
+
+
+
+
 
 -- Get all channels
 SELECT * FROM channel
@@ -51,6 +72,11 @@ SELECT * FROM video
 join v_channel on v_channel.channel_id = video.channel_id
 WHERE LOWER(title) LIKE '%jap%';
 
+--get a specific video
+select * from video
+where video_id = 'dbea828d-e4d7-420a-914e-5294d8e7ab07'
+	and not video.privacy = 'private';
+
 
 -- get playlist with channel info and video count 
 
@@ -62,6 +88,10 @@ select playlist.*,v_channel.*, count(playlist_video.*) as video_count from
 ) as v
 join v_channel on v_channel.channel_id = v.channel_id
 
+select video.video_id,title, thumbnail_path from playlist
+natural join playlist_video
+join video on video.video_id = playlist_video.video_id
+limit 5 offset 5;
 
 
 -- =========================

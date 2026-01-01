@@ -24,6 +24,18 @@ def authorize_video(video_id: str, token: str) -> bool:
     return bool(result)
 
 
+def authorize_playlist(playlist_id: str, auth_token: str) -> bool:
+    query = """
+    SELECT 1
+    FROM playlist p
+    JOIN channel c ON c.channel_id = p.channel_id
+    WHERE c.auth_token = %s
+      AND p.playlist_id = %s
+    LIMIT 1;
+    """
+    return fetch_one(query, (auth_token, playlist_id)) is not None
+
+
 def authorize_comment(comment_id: str, token: str) -> bool:
     result = fetch_all(
         """
@@ -38,7 +50,7 @@ def authorize_comment(comment_id: str, token: str) -> bool:
     return bool(result)
 
 
-def authorize_subscription(subscriber_id: str, token: str) -> bool:
+def authorize_subscription(subscription_id: str, token: str) -> bool:
     result = fetch_all(
         """
         SELECT 1
@@ -47,7 +59,7 @@ def authorize_subscription(subscriber_id: str, token: str) -> bool:
         WHERE channel.auth_token = %s AND subscription.subscriber_id = %s
         LIMIT 1;
         """,
-        (token, subscriber_id)
+        (token, subscription_id)
     )
     return bool(result)
 

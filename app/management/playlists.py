@@ -1,13 +1,15 @@
-from .db import execute, fetch_all
+from .db import *
 
 
 def create_playlist(channel_id, name):
-    execute(
+    return execute(
         """
         INSERT INTO playlist (channel_id, playlist_name)
-        VALUES (%s, %s);
+        VALUES (%s, %s)
+        RETURNING *;
         """,
-        (channel_id, name)
+        (channel_id, name),
+        fetch_one=True
     )
 
 
@@ -32,4 +34,17 @@ def remove_video_from_playlist(video_id):
     execute(
         "DELETE FROM playlist_video WHERE video_id = %s;",
         (video_id,)
+    )
+
+def get_video_in_playlist(playlist_id: str, page: int = 0, page_size: int = 10):
+    query = """
+    select video.video_id,title, thumbnail_path from playlist
+    natural join playlist_video
+    join video on video.video_id = playlist_video.video_id
+    WHERE playlist.playlist_id = %s
+    LIMIT %s OFFSET %s;
+    """
+    return fetch_all(
+        query,
+        (playlist_id, page_size, page * page_size)
     )

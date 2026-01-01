@@ -4,3 +4,4 @@ from .playlists import *
 from .videos import *
 from .playlists import *
 from .watch_progress import *
+from .subscriptions import *
