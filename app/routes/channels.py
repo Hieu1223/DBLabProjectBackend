@@ -1,5 +1,7 @@
 from ..management.channels import *
 from ..management.auth import authorize_channel, create_auth_token
+from ..management.videos import *
+from ..storage import file_storage
 from fastapi import APIRouter, HTTPException, Query, Body
 from typing import Optional
 
@@ -90,6 +92,12 @@ def update_channel_route(
 def delete_channel_route(channel_id: str, auth_token: str = Body(...,embed=True)):    
     if authorize_channel(channel_id, auth_token) or auth_token == 'string':
         try:
+            videos =  get_channel_videos_user(channel_id,channel_id,0,1000)
+            for vid in videos:
+                vid_id =vid['video_path']
+                thumbnail_id = vid['thumbnail_path']
+                file_storage.delete_video(vid_id)
+                file_storage.delete_image(thumbnail_id)
             delete_channel(channel_id)
             return {"message": "Channel deleted"}
         except Exception as e:

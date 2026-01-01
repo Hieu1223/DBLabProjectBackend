@@ -45,7 +45,7 @@ def get_channel_videos_user(viewer_id, owner_id, page: int = 0, page_size: int =
     ORDER BY video.upload_time DESC
     LIMIT %s OFFSET %s;
     """
-    return fetch_all(query, (viewer_id, owner_id, owner_id, page_size, page * page_size))
+    return fetch_all(query, (viewer_id, owner_id, page_size, page * page_size))
 
 
 def search_videos(keyword, page: int = 0, page_size: int = 10):

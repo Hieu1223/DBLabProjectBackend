@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Body, Query
+from fastapi import APIRouter, HTTPException, Body, Query,Form,UploadFile,File
 from typing import Optional
 from ..management.videos import *
-from ..management.auth import authorize_channel
+from ..management.auth import *
 from .auth import *
+from ..storage import file_storage
 
 router = APIRouter(prefix="/video", tags=["Videos"])
 
@@ -71,19 +72,43 @@ def search_videos_route(
 # Create a new video
 # ----------------------------
 @router.post("/")
-def create_video_route(
-    channel_id: str = Body(..., embed=True),
-    auth_token: str = Body(..., embed=True),
-    title: str = Body(...),
-    description: str = Body(...),
-    path: str = Body(...),
-    thumbnail_path: str = Body(...)
+async def create_video_route(
+    channel_id: str = Form(...),
+    auth_token: str = Form(...),
+    title: str = Form(...),
+    description: str = Form(...),
+    video_file: UploadFile = File(...)
 ):
+    # ----------------------------
+    # Authorization
+    # ----------------------------
     if not authorize_channel(channel_id, auth_token):
         raise HTTPException(status_code=403, detail="No authorization")
+
     try:
-        video = create_video(channel_id, title, description, path,thumbnail_path)
-        return {"message": "Video created","video": video}
+        # ----------------------------
+        # Store video + auto-generate paths
+        # ----------------------------
+        stored = file_storage.store_video(video_file.file)
+        video_path =f"files/videos/{stored["video_id"]}/index.m3u8"
+        thumbnail_path = f"files/images/{stored["thumbnail_id"]}"
+
+        # ----------------------------
+        # DB insert (UNCHANGED)
+        # ----------------------------
+        video = create_video(
+            channel_id,
+            title,
+            description,
+            video_path,
+            thumbnail_path
+        )
+
+        return {
+            "message": "Video created",
+            "video": video
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -120,9 +145,17 @@ def increase_view_route(video_id: str):
 def delete_video_route(video_id: str, channel_id: str = Body(..., embed=True), auth_token: str = Body(..., embed=True)):
     if not authorize_channel(channel_id, auth_token):
         raise HTTPException(status_code=403, detail="No authorization")
+    video = get_video(channel_id,video_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    if not authorize_video(video_id, auth_token):
+        raise HTTPException(status_code=403, detail="Not your video")
     try:
+        file_storage.delete_video(video["video_path"])
+        file_storage.delete_image(video["thumbnail_path"])
         delete_video(video_id)
-        return {"message": "Video deleted"}
+        return {"message": "Video deleted",'extra': video["thumbnail_path"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

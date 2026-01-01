@@ -6,7 +6,7 @@ from typing import BinaryIO
 import tempfile
 
 # This is actually HLS output, not raw videos
-STORAGE_DIR = "storage"
+STORAGE_DIR = "files"
 STORAGE_VIDEO_DIR = STORAGE_DIR + "/videos"
 STORAGE_IMAGE_DIR = STORAGE_DIR + "/images"
 os.makedirs(STORAGE_DIR, exist_ok=True)
@@ -117,9 +117,27 @@ def store_image(file_obj: BinaryIO) -> str:
     Store an uploaded image and return its UUID.
     """
     image_id = str(uuid.uuid4())
-    output_path = os.path.join(STORAGE_IMAGE_DIR, image_id)
+    output_path = os.path.join(STORAGE_IMAGE_DIR, f"{image_id}.jpg")
 
     with open(output_path, "wb") as f:
         shutil.copyfileobj(file_obj, f)
 
     return image_id
+
+def delete_image(image_id: str):
+    image_path = os.path.join(f"{image_id}.jpg")
+
+    if os.path.exists(image_path):
+        os.remove(image_path) 
+    else:
+        raise FileNotFoundError(f"Image {image_path} not found")
+
+
+def delete_video(video_id: str):
+    video_dir = os.path.dirname(video_id)
+
+    if os.path.exists(video_dir):
+        shutil.rmtree(video_dir)
+    else:
+        raise FileNotFoundError(f"Video {video_id} not found")
+
