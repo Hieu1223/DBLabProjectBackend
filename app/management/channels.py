@@ -7,11 +7,7 @@ def get_all_channels(page: int = 0, page_size: int = 10):
         (page_size, page * page_size)
     )
 
-def get_channel(channel_id):
-    return fetch_one(
-        "SELECT * FROM channel WHERE channel_id = %s",
-        (channel_id)
-    )
+
 
 
 def get_channel_by_id(channel_id):
@@ -27,9 +23,9 @@ def get_channel_by_id(channel_id):
 def search_channels(keyword, page: int = 0, page_size: int = 10):
     return fetch_all(
         """
-        SELECT * FROM channel
+        SELECT channel_id,display_name,profile_pic_path FROM channel
         WHERE LOWER(display_name) LIKE %s
-        ORDER BY display_name
+        ORDER BY subscriber_count
         LIMIT %s OFFSET %s;
         """,
         (f"%{keyword.lower()}%", page_size, page * page_size)

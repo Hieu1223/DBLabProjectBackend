@@ -4,3 +4,5 @@ from . import channels
 from . import videos
 from . import subscription
 from . import playlists
+from . import history
+from . import reaction

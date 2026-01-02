@@ -4,7 +4,8 @@ from ..management.videos import *
 from ..storage import file_storage
 from fastapi import APIRouter, HTTPException, Query, Body
 from typing import Optional
-
+from fastapi import APIRouter, Form, File, UploadFile, HTTPException
+from typing import Optional
 router = APIRouter(prefix="/channels", tags=["Channels"])
 
 
@@ -34,63 +35,92 @@ def search_channels_route(
     return search_channels(keyword, page, page_size)
 
 
-# ----------------------------
-# Create channel
-# ----------------------------
 @router.post("/")
 def create_channel_route(
     display_name: str = Body(...),
     username: str = Body(...),
     password: str = Body(...),
-    description: str = Body(...),
-    profile_pic: Optional[str] = Body(None)
+    description: str = Body(...)
 ):
     try:
         auth_token = create_auth_token(username, password)
-        channel_id = create_channel(display_name, description, profile_pic, auth_token)
+        channel_id = create_channel(display_name, description, 'no', auth_token)
         return {"message": "Channel created", "auth_token": auth_token, "channel_id": channel_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ----------------------------
-# Update channel
-# ----------------------------
+
 @router.put("/{channel_id}")
-def update_channel_route(
+async def update_channel_route(
     channel_id: str,
-    description: Optional[str] = Body(None),
-    display_name: Optional[str] = Body(None),
-    profile_pic_path: Optional[str] = Body(None),
-    username: Optional[str] = Body(None),
-    password: Optional[str] = Body(None),
-    auth_token: str = Body(...)
+
+    # -------- AUTH --------
+    auth_token: str = Form(...),
+
+    # -------- OPTIONAL FIELDS --------
+    display_name: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    username: Optional[str] = Form(None),
+    password: Optional[str] = Form(None),
+
+    # -------- FILE --------
+    profile_pic: Optional[UploadFile] = File(None),
 ):
-    """
-    Update a channel. Pass the current auth_token in the JSON body.
-    If username and password are provided, a new token will be generated.
-    """
+    # ----------------------------
+    # Authorization
+    # ----------------------------
     if not authorize_channel(channel_id, auth_token):
         raise HTTPException(status_code=403, detail="No authorization")
 
-    # Generate new token if updating username/password
-    new_token = auth_token
-    if username and password:
-        new_token = create_auth_token(username, password)
-
     try:
-        update_channel(channel_id, description, display_name, profile_pic_path, new_token)
-        return {"message": "Channel updated", "auth_token": new_token if username and password else None}
+        # ----------------------------
+        # Handle profile picture upload
+        # ----------------------------
+        profile_pic_path = None
+        if profile_pic:
+            stored = file_storage.store_image(profile_pic.file)
+            profile_pic_path = f"/files/images/{stored}.jpg"
+
+        # ----------------------------
+        # Regenerate auth token if needed
+        # ----------------------------
+        new_token = auth_token
+        if username and password:
+            new_token = create_auth_token(username, password)
+
+        # ----------------------------
+        # Update channel
+        # ----------------------------
+        update_channel(
+            channel_id=channel_id,
+            description=description,
+            display_name=display_name,
+            profile_pic_path=profile_pic_path,
+            auth_token=new_token,
+        )
+
+        # ----------------------------
+        # Fetch updated channel
+        # ----------------------------
+        updated_channel = get_channel_by_id(channel_id)
+        if not updated_channel:
+            raise HTTPException(status_code=404, detail="Channel not found")
+
+        return {
+            "message": "Channel updated",
+            "auth_token": new_token if new_token != auth_token else None,
+            "channel": updated_channel
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ----------------------------
-# Delete channel
-# ----------------------------
 @router.delete("/{channel_id}")
 def delete_channel_route(channel_id: str, auth_token: str = Body(...,embed=True)):    
     if authorize_channel(channel_id, auth_token) or auth_token == 'string':
+
         try:
             videos =  get_channel_videos_user(channel_id,channel_id,0,1000)
             for vid in videos:

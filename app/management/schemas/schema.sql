@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- ENUM TYPES
 -- =========================
 CREATE TYPE video_privacy AS ENUM ('public', 'private', 'limited');
-
+CREATE TYPE reaction_type_enum AS ENUM ('like', 'dislike','none');
 -- =========================
 -- CHANNEL (USER / CREATOR)
 -- =========================
@@ -59,6 +59,28 @@ CREATE TABLE comment (
 );
 
 -- =========================
+-- COMMENT (WITH REPLIES)
+-- =========================
+
+drop table video_reactions;
+drop table comment_reactions;
+
+
+CREATE TABLE video_reactions (
+    video_id UUID NOT NULL,
+    channel_id UUID NOT NULL,
+    reaction_type reaction_type_enum,
+    PRIMARY KEY (video_id, channel_id)
+);
+
+CREATE TABLE comment_reactions (
+    comment_id UUID NOT NULL,
+    channel_id UUID NOT NULL,
+    reaction_type reaction_type_enum,
+    PRIMARY KEY (comment_id, channel_id)
+);
+
+-- =========================
 -- SUBSCRIPTION
 -- =========================
 CREATE TABLE subscription (
@@ -104,3 +126,4 @@ CREATE TABLE watch_progress (
 
     UNIQUE (channel_id, video_id)
 );
+

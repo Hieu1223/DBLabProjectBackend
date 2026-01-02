@@ -55,22 +55,6 @@ def update_comment_route(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/{comment_id}/like")
-def like_comment_route(comment_id: str):
-    try:
-        like_comment(comment_id)
-        return {"message": "Comment liked"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/{comment_id}/dislike")
-def dislike_comment_route(comment_id: str):
-    try:
-        dislike_comment(comment_id)
-        return {"message": "Comment disliked"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{comment_id}")

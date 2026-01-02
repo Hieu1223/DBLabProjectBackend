@@ -23,7 +23,30 @@ def accessible_videos_route(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/liked")
+def liked_videos_route(
+    viewer_id: str = Query(...),
+    auth_token: str = Query(...),
+    page: int = Query(0, ge=0),
+    page_size: int = Query(20, ge=1, le=50)
+):
+    """
+    Get videos liked by a user (viewer_id) with pagination.
+    """
+    # Authorization check
+    if not authorize_channel(viewer_id, auth_token):
+        raise HTTPException(status_code=403, detail="Invalid auth token")
 
+    try:
+        videos = get_liked_videos(viewer_id, page, page_size)
+        return {
+            "page": page,
+            "page_size": page_size,
+            "total": len(videos),
+            "videos": videos
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/channel/{channel_id}")
@@ -44,6 +67,60 @@ def channel_videos_user_route(
             return get_channel_videos_user(id, channel_id, page, page_size)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/channel/{channel_id}/{video_id}")
+async def update_video_route(
+    video_id: str,
+    channel_id :str,
+    auth_token: str = Form(...),
+
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    privacy: Optional[str] = Form(None),
+
+    thumbnail_file: Optional[UploadFile] = File(None)
+):
+    # ----------------------------
+    # Authorization
+    # ----------------------------
+    if not authorize_channel(channel_id, auth_token):
+        raise HTTPException(status_code=403, detail="No authorization")
+    try:
+        # ----------------------------
+        # Handle thumbnail upload
+        # ----------------------------
+        thumbnail_path = None
+        if thumbnail_file:
+            stored = file_storage.store_image(thumbnail_file.file)
+            thumbnail_path = f"files/images/{stored}.jpg"
+        # ----------------------------
+        # Update DB
+        # ----------------------------
+        update_video(
+            video_id=video_id,
+            title=title,
+            description=description,
+            thumbnail_path=thumbnail_path,
+            privacy=privacy
+        )
+
+        # ----------------------------
+        # Fetch updated video
+        # ----------------------------
+        video = fetch_one(
+            "SELECT * FROM video WHERE video_id = %s",
+            (video_id,)
+        )
+
+        return {
+            "message": "Video updated",
+            "video": video
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/aggregate/{video_id}")
 def get_video_route(
@@ -90,8 +167,8 @@ async def create_video_route(
         # Store video + auto-generate paths
         # ----------------------------
         stored = file_storage.store_video(video_file.file)
-        video_path =f"files/videos/{stored["video_id"]}/index.m3u8"
-        thumbnail_path = f"files/images/{stored["thumbnail_id"]}"
+        video_path =f"/files/videos/{stored["video_id"]}/index.m3u8"
+        thumbnail_path = f"/files/images/{stored["thumbnail_id"]}.jpg"
 
         # ----------------------------
         # DB insert (UNCHANGED)
@@ -113,25 +190,6 @@ async def create_video_route(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ----------------------------
-# Like / Dislike / Delete video
-# ----------------------------
-@router.post("/{video_id}/like")
-def like_video_route(video_id: str):
-    try:
-        like_video(video_id)
-        return {"message": "Video liked"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/{video_id}/dislike")
-def dislike_video_route(video_id: str):
-    try:
-        dislike_video(video_id)
-        return {"message": "Video disliked"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{video_id}/view")
 def increase_view_route(video_id: str):
