@@ -2,3 +2,5 @@
 data_gen/
 storage/
 files/
+*.pyc
+**/__pycache__/

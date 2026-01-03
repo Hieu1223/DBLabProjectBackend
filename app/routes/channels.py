@@ -80,7 +80,7 @@ async def update_channel_route(
         profile_pic_path = None
         if profile_pic:
             stored = file_storage.store_image(profile_pic.file)
-            profile_pic_path = f"/files/images/{stored}.jpg"
+            profile_pic_path = f"files/images/{stored}"
 
         # ----------------------------
         # Regenerate auth token if needed

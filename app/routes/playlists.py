@@ -19,6 +19,19 @@ def create_playlist_route(
         return playlist
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/{channel_id}")
+def get_playlist_route(
+    channel_id: str,
+    page: int = Query(0, ge=0),
+    page_size: int = Query(10, gt=0, le=100)
+):
+    try:
+        return get_playlist_in_channel(channel_id,page_size,page)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/{playlist_id}/videos")
 def add_video_to_playlist_route(

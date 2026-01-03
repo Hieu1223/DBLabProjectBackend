@@ -23,9 +23,9 @@ def get_channel_by_id(channel_id):
 def search_channels(keyword, page: int = 0, page_size: int = 10):
     return fetch_all(
         """
-        SELECT channel_id,display_name,profile_pic_path FROM channel
+        SELECT channel_id,display_name,profile_pic_path,subscriber_count FROM channel
         WHERE LOWER(display_name) LIKE %s
-        ORDER BY subscriber_count
+        ORDER BY subscriber_count DESC
         LIMIT %s OFFSET %s;
         """,
         (f"%{keyword.lower()}%", page_size, page * page_size)

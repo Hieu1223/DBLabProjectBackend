@@ -6,6 +6,10 @@ from ..management.auth import authorize_channel, authorize_subscription
 router = APIRouter(prefix="/subscription", tags=["Subscriptions"])
 
 
+
+
+
+
 @router.post("/")
 def subscribe_route(
     channel_id: str = Body(..., embed=True),
@@ -43,6 +47,22 @@ def list_subscriptions_route(
 
 
 
+@router.get("/status")
+async def get_subscription_status(
+    subscriber_id: str = Query(...),
+    channel_id: str = Query(...)
+):
+    """
+    Checks if a specific user is subscribed to a specific channel.
+    Returns {"is_subscribed": true} or {"is_subscribed": false}
+    """
+    try:
+        # result will be [(1,)] if found, or [] if not found
+        result = check_subscription(subscriber_id, channel_id)
+        
+        return {"is_subscribed": len(result) > 0}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/")

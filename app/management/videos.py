@@ -52,7 +52,7 @@ def get_channel_videos_user(viewer_id, owner_id, page: int = 0, page_size: int =
 
 def search_videos(keyword, page: int = 0, page_size: int = 10):
     query = """
-    SELECT video_id,channel_id,title,upload_time,thumbnail_path,views_count,last_position_second
+    SELECT video_id,channel_id,title,upload_time,thumbnail_path,views_count
     FROM video
     WHERE LOWER(title) LIKE %s
     ORDER BY video.upload_time DESC

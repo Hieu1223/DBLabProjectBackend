@@ -93,7 +93,7 @@ async def update_video_route(
         thumbnail_path = None
         if thumbnail_file:
             stored = file_storage.store_image(thumbnail_file.file)
-            thumbnail_path = f"files/images/{stored}.jpg"
+            thumbnail_path = f"files/images/{stored}"
         # ----------------------------
         # Update DB
         # ----------------------------
@@ -167,8 +167,8 @@ async def create_video_route(
         # Store video + auto-generate paths
         # ----------------------------
         stored = file_storage.store_video(video_file.file)
-        video_path =f"/files/videos/{stored["video_id"]}/index.m3u8"
-        thumbnail_path = f"/files/images/{stored["thumbnail_id"]}.jpg"
+        video_path =f"files/videos/{stored["video_id"]}/index.m3u8"
+        thumbnail_path = f"files/images/{stored["thumbnail_id"]}"
 
         # ----------------------------
         # DB insert (UNCHANGED)

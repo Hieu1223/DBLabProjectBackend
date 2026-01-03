@@ -2,17 +2,11 @@ from .db import fetch_all, execute
 
 
 def get_comments(video_id, page=0, page_size=10):
-    """
-    Fetch comments for a video with paging.
-    
-    :param video_id: ID of the video
-    :param page: zero-based page number
-    :param page_size: number of comments per page
-    """
     query = """
     SELECT *
     FROM comment
     WHERE video_id = %s
+    ORDER BY comment_time DESC
     LIMIT %s OFFSET %s;
     """
     return fetch_all(query, (video_id, page_size, page * page_size))

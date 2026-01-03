@@ -62,3 +62,17 @@ def get_subscribed_channels(
         """,
         (subscriber_id, page_size, page * page_size)
     )
+
+
+def check_subscription(
+    subscriber_id:str,
+    channel_id : str
+):
+    return fetch_all(
+        """
+        SELECT 1
+        FROM "subscription" s
+        WHERE s.subscriber_id = %s and s.channel_id = %s
+        """,
+        (subscriber_id, channel_id)
+    )

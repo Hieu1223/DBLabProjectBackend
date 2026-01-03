@@ -1,6 +1,15 @@
 from .db import *
 
 
+def get_playlist_in_channel(channel_id,page_size, page):
+    query = """
+    select * from playlist
+    where channel_id = %s
+    limit %s offset %s;
+    """
+    return fetch_all(query, (channel_id,page_size, page_size* page))
+
+
 def create_playlist(channel_id, name):
     return execute(
         """
