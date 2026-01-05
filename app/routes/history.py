@@ -5,9 +5,6 @@ from ..management.watch_progress import get_watch_progress, upsert_watch_progres
 router = APIRouter(prefix="/history", tags=["History"])
 
 
-# ----------------------------
-# GET HISTORY
-# ----------------------------
 @router.post("/")
 def get_watch_history(
     channel_id: str = Body(..., embed=True),
@@ -21,10 +18,6 @@ def get_watch_history(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# ----------------------------
-# UPDATE WATCH PROGRESS
-# ----------------------------
 @router.put("/")
 def update_watch_history(
     channel_id: str = Body(..., embed=True),

@@ -23,6 +23,8 @@ def create_comment(video_id, user_id, content):
     )
 
 
+
+
 def update_comment(comment_id, content):
     return execute(
         """
@@ -34,6 +36,7 @@ def update_comment(comment_id, content):
         """,
         (content, comment_id),fetch_one=True
     )
+
 
 
 def like_comment(comment_id):

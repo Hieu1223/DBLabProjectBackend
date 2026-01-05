@@ -60,9 +60,7 @@ def get_video_reaction(channel_id: str, video_id: str) -> str:
     return row['reaction_type'] if row else 'none'
 
 
-# -----------------------------
 # Comment Reactions
-# -----------------------------
 def set_comment_reaction(channel_id: str, comment_id: str, reaction: str):
     """
     reaction: 'like', 'dislike', or 'none'

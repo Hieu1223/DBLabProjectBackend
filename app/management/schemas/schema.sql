@@ -1,129 +1,73 @@
--- =========================
--- EXTENSIONS
--- =========================
+-- 1. Enable UUID support and Types
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- =========================
--- ENUM TYPES
--- =========================
+CREATE TYPE reaction_type_enum AS ENUM ('like', 'dislike', 'none');
 CREATE TYPE video_privacy AS ENUM ('public', 'private', 'limited');
-CREATE TYPE reaction_type_enum AS ENUM ('like', 'dislike','none');
--- =========================
--- CHANNEL (USER / CREATOR)
--- =========================
+
+-- 2. Create Tables without constraints
 CREATE TABLE channel (
-    channel_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    display_name TEXT NOT NULL,
-    profile_pic_path TEXT,
-    subscriber_count BIGINT DEFAULT 0,
-    description TEXT NOT NULL,
-    auth_token TEXT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    channel_id uuid DEFAULT gen_random_uuid(),
+    display_name text NOT NULL,
+    profile_pic_path text,
+    subscriber_count bigint DEFAULT 0,
+    description text NOT NULL,
+    auth_token text,
+    created_at timestamp with time zone DEFAULT now()
 );
 
--- =========================
--- VIDEO
--- =========================
 CREATE TABLE video (
-    video_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    channel_id UUID NOT NULL REFERENCES channel(channel_id) ON DELETE CASCADE,
-
-    title TEXT NOT NULL,
-    description TEXT,
-    upload_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    video_path TEXT NOT NULL,
-    thumbnail_path TEXT NOT NULL,
-
-    views_count BIGINT DEFAULT 0,
-    like_count BIGINT DEFAULT 0,
-    dislike_count BIGINT DEFAULT 0,
-
+    video_id uuid DEFAULT gen_random_uuid(),
+    channel_id uuid NOT NULL,
+    title text NOT NULL,
+    description text,
+    upload_time timestamp with time zone DEFAULT now(),
+    video_path text NOT NULL,
+    thumbnail_path text NOT NULL,
+    views_count bigint DEFAULT 0,
+    like_count bigint DEFAULT 0,
+    dislike_count bigint DEFAULT 0,
     privacy video_privacy DEFAULT 'public'
 );
 
--- =========================
--- COMMENT (WITH REPLIES)
--- =========================
 CREATE TABLE comment (
-    comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    parent_comment_id UUID REFERENCES comment(comment_id) ON DELETE CASCADE,
-
-    video_id UUID NOT NULL REFERENCES video(video_id) ON DELETE CASCADE,
-    channel_id UUID NOT NULL REFERENCES channel(channel_id) ON DELETE CASCADE,
-
-    content TEXT NOT NULL,
-    like_count BIGINT DEFAULT 0,
-    dislike_count BIGINT DEFAULT 0,
-    comment_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    comment_id uuid DEFAULT gen_random_uuid(),
+    parent_comment_id uuid,
+    video_id uuid NOT NULL,
+    channel_id uuid NOT NULL,
+    content text NOT NULL,
+    like_count bigint DEFAULT 0,
+    dislike_count bigint DEFAULT 0,
+    comment_time timestamp with time zone DEFAULT now()
 );
 
--- =========================
--- COMMENT (WITH REPLIES)
--- =========================
+CREATE TABLE subscription (
+    subscription_id uuid DEFAULT gen_random_uuid(),
+    subscriber_id uuid NOT NULL,
+    channel_id uuid NOT NULL,
+    subscribe_time timestamp with time zone DEFAULT now()
+);
 
-drop table video_reactions;
-drop table comment_reactions;
-
+CREATE TABLE playlist (
+    playlist_id uuid DEFAULT gen_random_uuid(),
+    channel_id uuid NOT NULL,
+    playlist_name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
 
 CREATE TABLE video_reactions (
-    video_id UUID NOT NULL,
-    channel_id UUID NOT NULL,
-    reaction_type reaction_type_enum,
-    PRIMARY KEY (video_id, channel_id)
+    video_id uuid NOT NULL,
+    channel_id uuid NOT NULL,
+    reaction_type reaction_type_enum
 );
 
-CREATE TABLE comment_reactions (
-    comment_id UUID NOT NULL,
-    channel_id UUID NOT NULL,
-    reaction_type reaction_type_enum,
-    PRIMARY KEY (comment_id, channel_id)
-);
 
--- =========================
--- SUBSCRIPTION
--- =========================
-CREATE TABLE subscription (
-    subscription_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    subscriber_id UUID NOT NULL REFERENCES channel(channel_id) ON DELETE CASCADE,
-    channel_id UUID NOT NULL REFERENCES channel(channel_id) ON DELETE CASCADE,
-    subscribe_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    UNIQUE (subscriber_id, channel_id)
-);
-
--- =========================
--- PLAYLIST
--- =========================
-CREATE TABLE playlist (
-    playlist_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    channel_id UUID NOT NULL REFERENCES channel(channel_id) ON DELETE CASCADE,
-    playlist_name TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- =========================
--- PLAYLIST ↔ VIDEO (M:N)
--- =========================
 CREATE TABLE playlist_video (
-    playlist_video_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    playlist_id UUID NOT NULL REFERENCES playlist(playlist_id) ON DELETE CASCADE,
-    video_id UUID NOT NULL REFERENCES video(video_id) ON DELETE CASCADE,
-
-    UNIQUE (playlist_id, video_id)
+    playlist_video_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    playlist_id uuid NOT NULL,
+    video_id uuid NOT NULL
 );
-
--- =========================
--- WATCH PROGRESS
--- =========================
-CREATE TABLE watch_progress (
-    history_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    channel_id UUID NOT NULL REFERENCES channel(channel_id) ON DELETE CASCADE,
-    video_id UUID NOT NULL REFERENCES video(video_id) ON DELETE CASCADE,
-
-    last_position_second INTEGER DEFAULT 0,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    UNIQUE (channel_id, video_id)
+CREATE TABLE comment_reactions (
+    comment_id uuid NOT NULL,
+    channel_id uuid NOT NULL,
+    reaction_type reaction_type_enum
 );
-

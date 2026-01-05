@@ -72,6 +72,16 @@ def remove_video_from_playlist_route(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/from_video/{video_id}/{channel_id}")
+def list_playlist_from_video_and_user_route(
+    video_id: str,
+    channel_id: str
+):
+    try:
+        return list_playlist_from_video_and_user(video_id, channel_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/{playlist_id}")
 def delete_playlist_route(
     playlist_id: str,

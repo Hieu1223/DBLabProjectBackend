@@ -52,12 +52,7 @@ async def get_subscription_status(
     subscriber_id: str = Query(...),
     channel_id: str = Query(...)
 ):
-    """
-    Checks if a specific user is subscribed to a specific channel.
-    Returns {"is_subscribed": true} or {"is_subscribed": false}
-    """
     try:
-        # result will be [(1,)] if found, or [] if not found
         result = check_subscription(subscriber_id, channel_id)
         
         return {"is_subscribed": len(result) > 0}

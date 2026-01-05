@@ -58,7 +58,8 @@ RETURNING channel_id;
 -- Query: update_channel (dynamic)
 UPDATE channel
 SET {comma-separated fields}
-WHERE channel_id = %s;
+WHERE channel_id = %s
+RETURNING *;
 
 -- Query: delete_channel
 DELETE FROM channel WHERE channel_id = %s;
@@ -124,15 +125,26 @@ join video on video.video_id = playlist_video.video_id
 WHERE playlist.playlist_id = %s
 LIMIT %s OFFSET %s;
 
+
+
+
+-- Query: list_playlist_from_video_and_user
+select playlist.playlist_id, playlist_name from playlist
+natural join playlist_video
+where playlist_video.video_id = %s and playlist.channel_id = %s;
+
+
+
+
 -- File: reactions.py
 -- Query: get video reaction
 SELECT reaction_type FROM video_reactions WHERE channel_id = %s AND video_id = %s;
 
 -- Query: decrement video like count
-UPDATE video SET like_count = GREATEST(COALESCE(like_count,0) - 1, 0) WHERE video_id = %s;
+UPDATE video SET like_count = GREATEST(COALESCE(like_count,0) - 1, 0) WHERE video_id = %s RETURNING like_count;
 
 -- Query: decrement video dislike count
-UPDATE video SET dislike_count = GREATEST(COALESCE(dislike_count,0) - 1, 0) WHERE video_id = %s;
+UPDATE video SET dislike_count = GREATEST(COALESCE(dislike_count,0) - 1, 0) WHERE video_id = %s RETURNING dislike_count;
 
 -- Query: update video reaction
 UPDATE video_reactions SET reaction_type = %s WHERE channel_id = %s AND video_id = %s;
@@ -221,13 +233,16 @@ WHERE video.channel_id = %s and video.privacy = 'public'
 LIMIT %s OFFSET %s;
 
 -- Query: get_channel_videos_user
-SELECT video_id,video.channel_id,title,upload_time,thumbnail_path,views_count,video_path
+SELECT video_id,video.channel_id,title,upload_time,thumbnail_path,views_count,video_path, last_position_second
 FROM video
+JOIN watch_progress on watch_progress.video_id = video.video_id, watch_progress.channel_id =  %s
 WHERE video.channel_id = %s
 AND (
-video.privacy = 'public'
-OR video.privacy = 'limited'
-OR video.channel_id = %s
+	video.privacy = 'public'
+	OR (
+		video.privacy = 'limited'
+		AND video.channel_id = %s
+	)
 )
 ORDER BY video.upload_time DESC
 LIMIT %s OFFSET %s;

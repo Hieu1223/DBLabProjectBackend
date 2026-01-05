@@ -16,12 +16,6 @@ def react_route(
     target_id: str = Body(..., embed=True),
     reaction: ReactionType = Body(..., embed=True)
 ):
-    """
-    React to a video or comment.
-    reaction: "like", "dislike", or None (to unlike/undislike)
-    target_type: "video" or "comment"
-    target_id: id of video or comment
-    """
     if not authorize_channel(channel_id, auth_token):
         raise HTTPException(status_code=403, detail="Invalid auth token")
 
@@ -46,9 +40,6 @@ def get_reaction_route(
     target_type: TargetType = Query(...),
     target_id: str = Query(...)
 ):
-    """
-    Get the current reaction of a user for a video or comment
-    """
     try:
         if target_type == "video":
             reaction = get_video_reaction(channel_id, target_id)

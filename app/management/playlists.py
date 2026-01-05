@@ -39,6 +39,17 @@ def delete_playlist(playlist_id):
     )
 
 
+def list_playlist_from_video_and_user(video_id, channel_id):
+    query = """
+    select playlist.playlist_id, playlist_name from playlist
+    natural join playlist_video
+    where playlist_video.video_id = %s and playlist.channel_id = %s;
+    """
+    return fetch_all(
+        query,
+        (video_id, channel_id)
+    )
+
 def remove_video_from_playlist(video_id):
     execute(
         "DELETE FROM playlist_video WHERE video_id = %s;",

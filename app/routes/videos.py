@@ -30,10 +30,6 @@ def liked_videos_route(
     page: int = Query(0, ge=0),
     page_size: int = Query(20, ge=1, le=50)
 ):
-    """
-    Get videos liked by a user (viewer_id) with pagination.
-    """
-    # Authorization check
     if not authorize_channel(viewer_id, auth_token):
         raise HTTPException(status_code=403, detail="Invalid auth token")
 
@@ -81,22 +77,13 @@ async def update_video_route(
 
     thumbnail_file: Optional[UploadFile] = File(None)
 ):
-    # ----------------------------
-    # Authorization
-    # ----------------------------
     if not authorize_channel(channel_id, auth_token):
         raise HTTPException(status_code=403, detail="No authorization")
     try:
-        # ----------------------------
-        # Handle thumbnail upload
-        # ----------------------------
         thumbnail_path = None
         if thumbnail_file:
             stored = file_storage.store_image(thumbnail_file.file)
             thumbnail_path = f"files/images/{stored}"
-        # ----------------------------
-        # Update DB
-        # ----------------------------
         update_video(
             video_id=video_id,
             title=title,
@@ -105,9 +92,6 @@ async def update_video_route(
             privacy=privacy
         )
 
-        # ----------------------------
-        # Fetch updated video
-        # ----------------------------
         video = fetch_one(
             "SELECT * FROM video WHERE video_id = %s",
             (video_id,)
@@ -145,9 +129,6 @@ def search_videos_route(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ----------------------------
-# Create a new video
-# ----------------------------
 @router.post("/")
 async def create_video_route(
     channel_id: str = Form(...),
@@ -156,23 +137,14 @@ async def create_video_route(
     description: str = Form(...),
     video_file: UploadFile = File(...)
 ):
-    # ----------------------------
-    # Authorization
-    # ----------------------------
     if not authorize_channel(channel_id, auth_token):
         raise HTTPException(status_code=403, detail="No authorization")
 
     try:
-        # ----------------------------
-        # Store video + auto-generate paths
-        # ----------------------------
         stored = file_storage.store_video(video_file.file)
         video_path =f"files/videos/{stored["video_id"]}/index.m3u8"
         thumbnail_path = f"files/images/{stored["thumbnail_id"]}"
 
-        # ----------------------------
-        # DB insert (UNCHANGED)
-        # ----------------------------
         video = create_video(
             channel_id,
             title,

@@ -140,9 +140,6 @@ def get_video(viewer_id: str, video_id: str):
         return fetch_one(query, (video_id,))
 
 def get_liked_videos(viewer_id: str, page: int = 0, page_size: int = 20):
-    """
-    Returns a paginated list of videos that the user (viewer_id) has liked.
-    """
     offset = page * page_size
 
     query = """

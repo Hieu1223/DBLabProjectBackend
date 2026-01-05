@@ -55,43 +55,28 @@ def create_channel_route(
 async def update_channel_route(
     channel_id: str,
 
-    # -------- AUTH --------
     auth_token: str = Form(...),
 
-    # -------- OPTIONAL FIELDS --------
     display_name: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     username: Optional[str] = Form(None),
     password: Optional[str] = Form(None),
 
-    # -------- FILE --------
     profile_pic: Optional[UploadFile] = File(None),
 ):
-    # ----------------------------
-    # Authorization
-    # ----------------------------
     if not authorize_channel(channel_id, auth_token):
         raise HTTPException(status_code=403, detail="No authorization")
 
     try:
-        # ----------------------------
-        # Handle profile picture upload
-        # ----------------------------
         profile_pic_path = None
         if profile_pic:
             stored = file_storage.store_image(profile_pic.file)
             profile_pic_path = f"files/images/{stored}"
 
-        # ----------------------------
-        # Regenerate auth token if needed
-        # ----------------------------
         new_token = auth_token
         if username and password:
             new_token = create_auth_token(username, password)
 
-        # ----------------------------
-        # Update channel
-        # ----------------------------
         update_channel(
             channel_id=channel_id,
             description=description,
@@ -100,9 +85,6 @@ async def update_channel_route(
             auth_token=new_token,
         )
 
-        # ----------------------------
-        # Fetch updated channel
-        # ----------------------------
         updated_channel = get_channel_by_id(channel_id)
         if not updated_channel:
             raise HTTPException(status_code=404, detail="Channel not found")
