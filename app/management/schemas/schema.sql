@@ -66,6 +66,8 @@ CREATE TABLE playlist_video (
     playlist_id uuid NOT NULL,
     video_id uuid NOT NULL
 );
+
+
 CREATE TABLE comment_reactions (
     comment_id uuid NOT NULL,
     channel_id uuid NOT NULL,
