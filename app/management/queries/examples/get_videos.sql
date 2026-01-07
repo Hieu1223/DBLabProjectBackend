@@ -1,0 +1,1 @@
+drop trigger prevent_self_subscription on table subscription

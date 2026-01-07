@@ -8,6 +8,7 @@ CREATE TABLE channel (
     subscriber_count bigint NOT NULL DEFAULT 0 CHECK (subscriber_count >= 0),
     description text NOT NULL,
     auth_token text NOT NULL UNIQUE,
+    -- hash(username + password)
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE video (
@@ -86,3 +87,5 @@ CREATE TABLE watch_progress (
     FOREIGN KEY (video_id) REFERENCES video(video_id) ON DELETE CASCADE,
     FOREIGN KEY (channel_id) REFERENCES channel(channel_id) ON DELETE CASCADE
 );
+-- entity user consists both registered users (channel entity) and unregistered
+-- unregistered -> no data needs to be stored -> no need for a table
