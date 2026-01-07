@@ -57,7 +57,7 @@ RETURNING channel_id;
 
 -- Query: update_channel (dynamic)
 UPDATE channel
-SET {comma-separated fields}
+SET auth_token = '', description = '' , display_name = '', profile_pic_path = ''
 WHERE channel_id = %s
 RETURNING *;
 
@@ -219,20 +219,20 @@ WHERE video.channel_id = %s or video.privacy = 'public'
 ORDER BY video.upload_time DESC
 LIMIT %s OFFSET %s;
 
--- Query: get_accessible_videos_guest
+-- Query: get_accessible_videos_as_guest
 SELECT video_id,channel_id,title,upload_time,thumbnail_path,views_count
 FROM video
 WHERE video.privacy = 'public'
 ORDER BY video.upload_time DESC
 LIMIT %s OFFSET %s;
 
--- Query: get_channel_videos_guest
+-- Query: get_channel_videos_as_guest
 SELECT video_id,channel_id,title,upload_time,thumbnail_path,views_count,null as last_position_second
 FROM video
 WHERE video.channel_id = %s and video.privacy = 'public'
 LIMIT %s OFFSET %s;
 
--- Query: get_channel_videos_user
+-- Query: get_channel_videos_as_user
 SELECT video_id,video.channel_id,title,upload_time,thumbnail_path,views_count,video_path, last_position_second
 FROM video
 JOIN watch_progress on watch_progress.video_id = video.video_id, watch_progress.channel_id =  %s
@@ -240,7 +240,7 @@ WHERE video.channel_id = %s
 AND (
 	video.privacy = 'public'
 	OR (
-		video.privacy = 'limited'
+		video.privacy in ('limited', 'private')
 		AND video.channel_id = %s
 	)
 )
@@ -264,7 +264,7 @@ UPDATE video
 SET {comma-separated fields}
 WHERE video_id = %s;
 
--- Query: get_video (viewer exists)
+-- Query: get_video as an user
 SELECT video.*,v_channel.display_name, v_channel.profile_pic_path, watch_progress.last_position_second
 FROM video
 JOIN v_channel ON v_channel.channel_id = video.channel_id
@@ -274,7 +274,7 @@ AND watch_progress.channel_id = %s
 WHERE video.video_id = %s
 AND (video.privacy = 'public' OR video.channel_id = %s);
 
--- Query: get_video (guest)
+-- Query: get_video as guest
 SELECT video.*, NULL AS last_position_second
 FROM video
 JOIN v_channel ON v_channel.channel_id = video.channel_id
