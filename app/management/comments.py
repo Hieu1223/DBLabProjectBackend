@@ -19,10 +19,9 @@ def create_comment(video_id, user_id, content):
         VALUES (%s, %s, %s)
         RETURNING *;
         """,
-        (video_id, user_id, content),fetch_one=True
+        (video_id, user_id, content),
+        fetch_one=True,
     )
-
-
 
 
 def update_comment(comment_id, content):
@@ -34,9 +33,9 @@ def update_comment(comment_id, content):
         WHERE comment_id = %s
         RETURNING *;
         """,
-        (content, comment_id),fetch_one=True
+        (content, comment_id),
+        fetch_one=True,
     )
-
 
 
 def like_comment(comment_id):
@@ -46,7 +45,7 @@ def like_comment(comment_id):
         SET like_count = COALESCE(like_count, 0) + 1
         WHERE comment_id = %s;
         """,
-        (comment_id,)
+        (comment_id,),
     )
 
 
@@ -57,7 +56,7 @@ def dislike_comment(comment_id):
         SET dislike_count = COALESCE(dislike_count, 0) + 1
         WHERE comment_id = %s;
         """,
-        (comment_id,)
+        (comment_id,),
     )
 
 

@@ -1,23 +1,19 @@
 from .db import *
 
+
 def get_all_channels(page: int = 0, page_size: int = 10):
-    
+
     return fetch_all(
         "SELECT channel_id,display_name FROM channel ORDER BY subscriber_count DESC LIMIT %s OFFSET %s;",
-        (page_size, page * page_size)
+        (page_size, page * page_size),
     )
-
-
 
 
 def get_channel_by_id(channel_id):
     """
     Fetch a channel by ID (no paging needed, unique result)
     """
-    return fetch_all(
-        "SELECT * FROM channel WHERE channel_id = %s;",
-        (channel_id,)
-    )
+    return fetch_all("SELECT * FROM channel WHERE channel_id = %s;", (channel_id,))
 
 
 def search_channels(keyword, page: int = 0, page_size: int = 10):
@@ -28,7 +24,7 @@ def search_channels(keyword, page: int = 0, page_size: int = 10):
         ORDER BY subscriber_count DESC
         LIMIT %s OFFSET %s;
         """,
-        (f"%{keyword.lower()}%", page_size, page * page_size)
+        (f"%{keyword.lower()}%", page_size, page * page_size),
     )
 
 
@@ -38,7 +34,9 @@ def create_channel(display_name, description, profile_pic, auth_token):
         VALUES (%s, %s, %s, %s)
         RETURNING channel_id;
     """
-    result = execute(query, (display_name, description, profile_pic, auth_token), fetch_one=True)
+    result = execute(
+        query, (display_name, description, profile_pic, auth_token), fetch_one=True
+    )
     return result["channel_id"] if result else None
 
 
@@ -47,7 +45,7 @@ def update_channel(
     description=None,
     display_name=None,
     profile_pic_path=None,
-    auth_token=None
+    auth_token=None,
 ):
     fields = []
     values = []

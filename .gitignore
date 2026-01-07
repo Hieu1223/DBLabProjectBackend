@@ -1,5 +1,9 @@
-.venv/
-data_gen/
-files/
 *.pyc
+**/venv/
 **/__pycache__/
+data_gen/
+examples/
+files/
+functions/
+triggers/
+live_query/

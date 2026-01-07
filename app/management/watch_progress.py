@@ -9,8 +9,9 @@ def upsert_watch_progress(channel_id, video_id, seconds):
         ON CONFLICT (channel_id, video_id)
         DO UPDATE SET last_position_second = EXCLUDED.last_position_second;
         """,
-        (channel_id, video_id, seconds)
+        (channel_id, video_id, seconds),
     )
+
 
 def get_watch_progress(channel_id: str):
     return fetch_all(
@@ -21,5 +22,5 @@ def get_watch_progress(channel_id: str):
         FROM watch_progress
         WHERE channel_id = %s;
         """,
-        (channel_id,)
+        (channel_id,),
     )

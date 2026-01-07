@@ -1,7 +1,9 @@
 from .db import *
 
 
-def get_accessible_videos_user(viewer_channel_id: str, page: int = 0, page_size: int = 10):
+def get_accessible_videos_user(
+    viewer_channel_id: str, page: int = 0, page_size: int = 10
+):
     query = """
     SELECT video_id,channel_id,title,description,upload_time,thumbnail_path,views_count
     FROM video
@@ -10,7 +12,6 @@ def get_accessible_videos_user(viewer_channel_id: str, page: int = 0, page_size:
     LIMIT %s OFFSET %s;
     """
     return fetch_all(query, (viewer_channel_id, page_size, page * page_size))
-
 
 
 def get_accessible_videos_guest(page: int = 0, page_size: int = 10):
@@ -47,7 +48,7 @@ def get_channel_videos_user(viewer_id, owner_id, page: int = 0, page_size: int =
     ORDER BY video.upload_time DESC
     LIMIT %s OFFSET %s;
     """
-    return fetch_all(query, (owner_id,viewer_id, page_size, page * page_size))
+    return fetch_all(query, (owner_id, viewer_id, page_size, page * page_size))
 
 
 def search_videos(keyword, page: int = 0, page_size: int = 10):
@@ -59,7 +60,6 @@ def search_videos(keyword, page: int = 0, page_size: int = 10):
     LIMIT %s OFFSET %s;
     """
     return fetch_all(query, (f"%{keyword.lower()}%", page_size, page * page_size))
-
 
 
 def create_video(channel_id, title, description, path, thumbnail_path):
@@ -76,11 +76,7 @@ def create_video(channel_id, title, description, path, thumbnail_path):
 
 
 def update_video(
-    video_id,
-    title=None,
-    description=None,
-    thumbnail_path=None,
-    privacy=None
+    video_id, title=None, description=None, thumbnail_path=None, privacy=None
 ):
     fields = []
     values = []
@@ -114,6 +110,7 @@ def update_video(
 
     execute(query, tuple(values))
 
+
 def get_video(viewer_id: str, video_id: str):
     if viewer_id:
         # Viewer exists → join watch_progress
@@ -139,6 +136,7 @@ def get_video(viewer_id: str, video_id: str):
         """
         return fetch_one(query, (video_id,))
 
+
 def get_liked_videos(viewer_id: str, page: int = 0, page_size: int = 20):
     offset = page * page_size
 
@@ -154,6 +152,7 @@ def get_liked_videos(viewer_id: str, page: int = 0, page_size: int = 20):
 
     return fetch_all(query, (viewer_id, page_size, offset))
 
+
 def increase_view(video_id):
     execute(
         """
@@ -161,8 +160,9 @@ def increase_view(video_id):
         SET views_count = COALESCE(views_count, 0) + 1
         WHERE video_id = %s;
         """,
-        (video_id,)
+        (video_id,),
     )
+
 
 def delete_video(video_id):
     execute("DELETE FROM video WHERE video_id = %s;", (video_id,))

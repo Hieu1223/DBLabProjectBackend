@@ -18,7 +18,7 @@ def create_playlist(channel_id, name):
         RETURNING *;
         """,
         (channel_id, name),
-        fetch_one=True
+        fetch_one=True,
     )
 
 
