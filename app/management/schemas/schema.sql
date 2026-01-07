@@ -73,3 +73,12 @@ CREATE TABLE comment_reactions (
     channel_id uuid NOT NULL,
     reaction_type reaction_type_enum
 );
+
+
+CREATE TABLE watch_progress ( 
+    video_id uuid NOT NULL, 
+    channel_id uuid NOT NULL, 
+    last_position_second integer NOT NULL CHECK (last_position_second >= 0), 
+    updated_at timestamptz NOT NULL DEFAULT now(), 
+    PRIMARY KEY (video_id, channel_id)
+); 
